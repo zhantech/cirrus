@@ -1,0 +1,51 @@
+env:
+    CIRRUS_CLONE_DEPTH: 1
+    CIRRUS_WORKING_DIR: "/tmp/project"
+    rclone_config: "ENCRYPTED[239ba73e22a443df2d3725b423ee10de2e642ac571fe9c69ceaa6be2acde91e712e2b825b6618c6581f57b11e4d1e563]"
+    ccache_url: https://server.boedhack.workers.dev/ccache/ci2/ccache.tar.gz
+
+task:
+    name: Build
+    timeout_in: 120m
+    container:
+      image: cimg/android:30.0
+      cpu: 5
+      memory: 20G
+    download_ccache_script:
+      - sudo apt install aria2 ccache gzip pigz rclone -y
+      - cd /tmp
+      - time aria2c $ccache_url -x16 -s50
+      - time tar xf ccache.tar.gz
+      - rm -rf ccache.tar.gz
+    setup_environment_script:
+      - git config --global user.email "hifzhan41@gmail.com"
+      - git config --global user.name "zhantech"
+      - git config --global credential.helper "cache --timeout=7200"
+      - echo "git identity setup successfully!"
+      - git clone https://github.com/boedhack99/scripts --depth=1 --branch master
+      - scripts/setup/android_build_env.sh >/dev/null
+      - bash scripts/setup/install_android_sdk.sh >/dev/null
+    sync_script:
+      - mkdir -p /tmp/rom
+      - cd /tmp/rom
+      - repo init -q --no-repo-verify --depth=1 -u git://github.com/DerpFest-11/manifest.git -b 11 -g default,-device,-mips,-darwin,-notdefault
+      - git clone https://github.com/zhantech/local_manifest --depth=1 -b test .repo/local_manifests
+      - repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j30
+    build_script:
+      - mkdir -p /tmp/rom
+      - cd /tmp/rom
+      - . build/envsetup.sh
+      - lunch rr_mojito-userdebug
+      - export ALLOW_MISSING_DEPENDENCIES=true
+      - export CCACHE_DIR=/tmp/ccache
+      - export CCACHE_EXEC=$(which ccache)
+      - export USE_CCACHE=1
+      - ccache -M 20G 
+      - ccache -o compression=true
+      - ccache -z
+      - make init && make sepolicy && mka bacon -j4
+    ccache_stats_script:
+      - ccache -s
+    upload_script:
+      - chmod +x ./upload.sh
+      - ./upload.sh
