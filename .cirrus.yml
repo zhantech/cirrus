@@ -1,7 +1,7 @@
 env:
     CIRRUS_CLONE_DEPTH: 1
     CIRRUS_WORKING_DIR: "/tmp/project"
-    rclone_config: "ENCRYPTED[gtrf7m0bgh6v147sts836ndlsnem60kpopip55orsq6q8qcjjjo6cn2ec4cudd6jtvluiop3k5sbhkvs9f2g8j8t3dv9skdhr75ipe]"
+    rclone_config: "ENCRYPTED[239ba73e22a443df2d3725b423ee10de2e642ac571fe9c69ceaa6be2acde91e712e2b825b6618c6581f57b11e4d1e563]"
     ccache_url: https://server.zhantech.workers.dev/ccache/ci2/ccache.tar.gz
 
 task:
